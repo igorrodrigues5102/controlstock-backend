@@ -34,7 +34,7 @@ app.UseCors("PermitirTudo");
 using (var escopo = app.Services.CreateScope())
 {
     var db = escopo.ServiceProvider.GetRequiredService<ContextoMarketplace>();
-    db.Database.Migrate();
+    db.Database.EnsureCreated();
 
     if (!db.Produtos.Any())
     {
