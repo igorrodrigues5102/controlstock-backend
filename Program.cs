@@ -479,7 +479,19 @@ app.MapGet("/api/admin/produtos/buscar-imagens", (string termo) =>
 
     return Results.Ok(new { url1, url2, url3 });
 });
-
+// 📋 ROTA PARA MEUS ROMANEIOS (HISTÓRICO DE PEDIDOS)
+app.MapGet("/api/admin/romaneios", async (ContextoMarketplace db) =>
+{
+    try
+    {
+        var vendas = await db.Vendas.OrderByDescending(v => v.Id).ToListAsync();
+        return Results.Ok(vendas);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { erro = ex.Message });
+    }
+});
 app.Run();
 
 // =======================================================================
