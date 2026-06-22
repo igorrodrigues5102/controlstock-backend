@@ -22,7 +22,7 @@ builder.Services.AddScoped<EstoqueInteligenteService>();
 builder.Services.AddScoped<AntiFraudeService>();
 
 builder.Services.AddDbContext<ContextoMarketplace>(options =>
-    options.UseSqlite("Data Source=marketplace.db"));
+    options.UseSqlite("Data Source=data/marketplace.db"));
 
 var app = builder.Build();
 
