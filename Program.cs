@@ -36,36 +36,73 @@ using (var escopo = app.Services.CreateScope())
     var db = escopo.ServiceProvider.GetRequiredService<ContextoMarketplace>();
     db.Database.EnsureCreated();
 
-    if (!db.Produtos.Any())
+    if (!db.Produtos.Any(p => p.Nome.Contains("Seleção Brasileira")))
     {
         db.Produtos.AddRange(
             new Produto
             {
-                Nome = "Notebook Gamer Pro",
-                Preco = 4599.90m,
-                QuantidadeAtual = 8,
+                Nome = "Agasalho Seleção da Inglaterra - Branco Tradicional",
+                Preco = 319.90m,
+                QuantidadeAtual = 12,
                 EstoqueMinimo = 2,
-                Descricao = "Intel i7, 16GB RAM, RTX 3060.",
-                Fotos = new List<FotoProduto>
-                {
-                    new FotoProduto { Url = "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=500" },
-                    new FotoProduto { Url = "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500" }
-                }
+                Descricao = "Casaco esportivo oficial com o escudo dos Três Leões.",
+                Fotos = new List<FotoProduto> { new FotoProduto { Url = "https://images.postimages.org/inglaterra-agasalho.jpg" } }
             },
             new Produto
             {
-                Nome = "Smart TV 4K 55\"",
-                Preco = 2899.00m,
-                QuantidadeAtual = 5,
+                Nome = "Corta Vento Seleção da Bélgica - Vermelho e Preto",
+                Preco = 299.90m,
+                QuantidadeAtual = 10,
                 EstoqueMinimo = 2,
-                Descricao = "Tela QLED, HDR10+.",
-                Fotos = new List<FotoProduto>
-                {
-                    new FotoProduto { Url = "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=500" },
-                    new FotoProduto { Url = "https://images.unsplash.com/photo-1552975084-6e027cd345c2?w=500" }
-                }
+                Descricao = "Casaco corta-vento leve oficial dos Diabos Vermelhos.",
+                Fotos = new List<FotoProduto> { new FotoProduto { Url = "https://images.postimages.org/belgica-cortavento.jpg" } }
+            }, // Mantenha essa vírgula para conectar com a do Brasil que vem logo abaixo...
+            new Produto 
+            { 
+                Nome = "Corta Vento Seleção Brasileira - Amarelo Canarinho", 
+                Preco = 289.90m, 
+                QuantidadeAtual = 15,
+                EstoqueMinimo = 2,
+                Descricao = "Casaco corta-vento oficial da Seleção Brasileira.",
+                Fotos = new List<FotoProduto> { new FotoProduto { Url = "https://images.postimages.org/brasil-corta-vento.jpg" } }
+            },
+            new Produto 
+            { 
+                Nome = "Casaco de Moletom Seleção da França - Azul Escuro", 
+                Preco = 319.90m, 
+                QuantidadeAtual = 10,
+                EstoqueMinimo = 2,
+                Descricao = "Moletom confortável com o escudo da Federação Francesa.",
+                Fotos = new List<FotoProduto> { new FotoProduto { Url = "https://images.postimages.org/franca-agasalho.jpg" } }
+            },
+            new Produto 
+            { 
+                Nome = "Jaqueta Corta Vento Portugal - Vermelho Incrível", 
+                Preco = 299.90m, 
+                QuantidadeAtual = 12,
+                EstoqueMinimo = 2,
+                Descricao = "Jaqueta leve impermeável da Seleção Portuguesa.",
+                Fotos = new List<FotoProduto> { new FotoProduto { Url = "https://images.postimages.org/portugal-jaqueta.jpg" } }
+            },
+            new Produto 
+            { 
+                Nome = "Agasalho Seleção da Espanha - Vermelho e Ouro", 
+                Preco = 309.90m, 
+                QuantidadeAtual = 8,
+                EstoqueMinimo = 2,
+                Descricao = "Casaco esportivo oficial da Seleção Espanhola.",
+                Fotos = new List<FotoProduto> { new FotoProduto { Url = "https://images.postimages.org/espanha-agasalho.jpg" } }
+            },
+            new Produto 
+            { 
+                Nome = "Corta Vento Seleção da Argentina - Azul Celeste", 
+                Preco = 289.90m, 
+                QuantidadeAtual = 14,
+                EstoqueMinimo = 2,
+                Descricao = "Corta-vento oficial com as três estrelas da Seleção Argentina.",
+                Fotos = new List<FotoProduto> { new FotoProduto { Url = "https://images.postimages.org/argentina-corta-vento.jpg" } }
             }
-        );
+        ); // Este fecha o AddRange original de cima
         db.SaveChanges();
     }
 
@@ -201,7 +238,7 @@ app.MapPost("/api/vendas", async (ContextoMarketplace db, PedidoRequest pedido, 
         {
             var produto = await db.Produtos.FindAsync(item.Id);
             if (produto == null || produto.QuantidadeAtual < item.Qtd)
-                return Results.BadRequest(new { margin = $"Estoque insuficiente ou produto inválido: {item.Nome}" });
+                return Results.BadRequest(new { mensagem = $"Estoque insuficiente ou produto inválido: {item.Nome}" });
 
             produto.QuantidadeAtual -= item.Qtd;
 
@@ -492,7 +529,7 @@ app.MapGet("/api/admin/romaneios", async (ContextoMarketplace db) =>
         return Results.BadRequest(new { erro = ex.Message });
     }
 });
-app.Run();
+    app.Run();
 
 // =======================================================================
 // MODELOS DE ENTRADA DE DADOS (ESTRUTURAS DTO)
