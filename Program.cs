@@ -44,7 +44,6 @@ app.UseCors("PermitirTudo");
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
 
 // =======================================================================
 // INICIALIZAÇÃO DO BANCO E SEED DATA
