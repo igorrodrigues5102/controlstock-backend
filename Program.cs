@@ -14,9 +14,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirTudo", policy =>
     {
-        policy.SetIsOriginAllowed(_ => true) // Liberta qualquer origem (Cloudflare Pages, localhost, etc.)
+        policy.SetIsOriginAllowed(_ => true) // Permite qualquer origem (Cloudflare Pages, localhost, etc.)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials(); // Permite credenciais se necessário
     });
 });
 
@@ -32,13 +33,18 @@ var app = builder.Build();
 // =======================================================================
 // CONFIGURAÇÃO DO PIPELINE DE REQUISIÇÕES (MIDDLEWARE)
 // =======================================================================
-app.UseHttpsRedirection();
+
+// Apenas força o redirecionamento HTTPS em ambiente de produção para evitar erros locais de SSL
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors("PermitirTudo");
 app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-app.UseCors("PermitirTudo");
 
 // =======================================================================
 // INICIALIZAÇÃO DO BANCO E SEED DATA
