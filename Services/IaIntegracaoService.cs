@@ -63,11 +63,20 @@ public class IaIntegracaoService
     /// <summary>
     /// Gera dados comerciais estruturados (Nome, Preço Estimado, Descrição e Categoria) usando o Gemini 1.5 Flash.
     /// </summary>
-    public async Task<IaProdutoDadosResult?> GerarDadosProdutoAsync(string termo)
+    public async Task<IaProdutoDadosResult> GerarDadosProdutoAsync(string termo)
     {
+        // 🔥 SISTEMA ANTI-CRASH: Se a IA falhar por falta de chave ou limite de uso, este resultado de emergência é devolvido
+        var resultadoFallback = new IaProdutoDadosResult
+        {
+            Nome = $"{termo} (Simulação)",
+            Preco = 199.90m,
+            Descricao = "Ocorreu uma falha ao contactar a IA do Gemini (Verifique se a chave de API está configurada no Railway ou se o limite gratuito foi atingido). Este é um preenchimento de segurança para não bloquear o seu trabalho.",
+            Categoria = "Vestuário"
+        };
+
         if (string.IsNullOrEmpty(_geminiKey))
         {
-            return null;
+            return resultadoFallback;
         }
 
         try
@@ -79,7 +88,7 @@ public class IaIntegracaoService
             Siga rigorosamente esta estrutura:
             {{
                 ""nome"": ""Nome de exibição comercial amigável"",
-                ""preco"": 0.00,
+                ""preco"": 120.00,
                 ""descricao"": ""Uma descrição curta, vendedora e atraente para marketing de e-commerce."",
                 ""categoria"": ""Categoria mais adequada para este produto""
             }}";
@@ -92,37 +101,28 @@ public class IaIntegracaoService
             };
 
             var response = await _httpClient.PostAsJsonAsync(url, payload);
-            if (!response.IsSuccessStatusCode) return null;
+            
+            // Se o Google rejeitar o pedido, devolvemos os dados de segurança
+            if (!response.IsSuccessStatusCode) return resultadoFallback;
 
             var jsonResult = await response.Content.ReadFromJsonAsync<GeminiResponse>();
             var textoJsonRaw = jsonResult?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text?.Trim();
 
-            if (string.IsNullOrEmpty(textoJsonRaw)) return null;
+            if (string.IsNullOrEmpty(textoJsonRaw)) return resultadoFallback;
 
-            // Limpa formatações markdown indesejadas (como ```json ou ```) que a IA pode retornar por teimosia
-            var jsonLimpo = LimparFormatacaoMarkdown(textoJsonRaw);
+            // Limpa formatações indesejadas com segurança
+            var jsonLimpo = textoJsonRaw.Replace("```json", "").Replace("```", "").Trim();
 
             var opcoes = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            return JsonSerializer.Deserialize<IaProdutoDadosResult>(jsonLimpo, opcoes);
+            var dados = JsonSerializer.Deserialize<IaProdutoDadosResult>(jsonLimpo, opcoes);
+
+            return dados ?? resultadoFallback;
         }
         catch (Exception)
         {
-            return null;
+            // Se o C# não conseguir ler o JSON do Google, devolve o preenchimento de emergência em vez de crashar a API
+            return resultadoFallback;
         }
-    }
-
-    private string LimparFormatacaoMarkdown(string input)
-    {
-        if (input.StartsWith("```"))
-        {
-            int primeiraQuebra = input.IndexOf('\n');
-            int ultimaQuebra = input.LastIndexOf("```");
-            if (primeiraQuebra != -1 && ultimaQuebra != -1 && ultimaQuebra > primeiraQuebra)
-            {
-                return input.Substring(primeiraQuebra + 1, ultimaQuebra - primeiraQuebra - 1).Trim();
-            }
-        }
-        return input.Replace("```json", "").Replace("```", "").Trim();
     }
 
     private List<string> ObterFallbackImagens(string termo)
