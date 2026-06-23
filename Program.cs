@@ -8,11 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 // =======================================================================
 // CONFIGURAÇÃO DOS SERVIÇOS (CONTAINER)
 // =======================================================================
+builder.Services.AddControllers();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirTudo", policy =>
     {
-        policy.SetIsOriginAllowed(_ => true) // Libera qualquer origem, incluindo arquivos locais (null)
+        policy.SetIsOriginAllowed(_ => true) // Liberta qualquer origem (Cloudflare Pages, localhost, etc.)
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -20,12 +22,22 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<EstoqueInteligenteService>();
 builder.Services.AddScoped<AntiFraudeService>();
+builder.Services.AddHttpClient<IaIntegracaoService>();
 
 builder.Services.AddDbContext<ContextoMarketplace>(options =>
     options.UseSqlite("Data Source=data/marketplace.db"));
 
 var app = builder.Build();
 
+// =======================================================================
+// CONFIGURAÇÃO DO PIPELINE DE REQUISIÇÕES (MIDDLEWARE)
+// =======================================================================
+app.UseHttpsRedirection();
+app.UseCors("PermitirTudo");
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
 app.UseCors("PermitirTudo");
 
 // =======================================================================
