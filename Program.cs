@@ -546,9 +546,10 @@ app.MapGet("/api/admin/romaneios", async (ContextoMarketplace db) =>
         return Results.BadRequest(new { erro = ex.Message });
     }
 });
-    app.Run();
+  
 
 // =======================================================================
 // MODELOS DE ENTRADA DE DADOS (ESTRUTURAS DTO)
 // =======================================================================
 public record PrecoAvancadoRequest(int produtoId, string novoNome, decimal novoPrecoBase, int porcentagemDesconto, string url1, string url2, string url3);
+  app.Run();
