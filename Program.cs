@@ -547,9 +547,14 @@ app.MapGet("/api/admin/romaneios", async (ContextoMarketplace db) =>
     }
 });
   
+// ... todas as rotas ...
 
-// =======================================================================
-// MODELOS DE ENTRADA DE DADOS (ESTRUTURAS DTO)
-// =======================================================================
+app.Run(); // ← ÚLTIMA linha de código executável
+
+// ↓ Declarações de tipo SEMPRE no final, após o app.Run()
 public record PrecoAvancadoRequest(int produtoId, string novoNome, decimal novoPrecoBase, int porcentagemDesconto, string url1, string url2, string url3);
-  app.Run();
+
+// Outros records/classes se houver...
+public record LoginRequest(string Email, string Senha);
+public record PedidoRequest(...);
+// etc.
